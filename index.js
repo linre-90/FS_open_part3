@@ -2,23 +2,36 @@ const express = require("express");
 const app = express();
 const PORT = 3001;
 
+// Placeholder data
 let persons = [
     {
-        id: 1,
+        id: 0,
         name: "Arto Hellas",
         number: "040-654321",
     },
     {
-        id: 2,
+        id: 1,
         name: "Dan Abramov",
         number: "12-43-234345",
     },
     {
-        id: 3,
+        id: 2,
         name: "Mary Poppendieck",
         number: "39-23-6423122",
     },
 ];
+
+// api/persons/:id return person info based on id.
+// Returns 404 if person not found or id is not a number.
+app.get("/api/persons/:id", (req, res) => {
+    const id = Number.parseInt(req.params.id);
+
+    if (isNaN(id) || persons.find((person) => person.id === id) === undefined) {
+        res.sendStatus(404);
+    } else {
+        res.json(persons.find((person) => person.id === id));
+    }
+});
 
 // api/persons route
 app.get("/api/persons", (req, res) => {
@@ -54,6 +67,7 @@ app.get("*", (req, res) => {
     res.sendStatus(404);
 });
 
+//Start server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
