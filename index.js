@@ -19,8 +19,14 @@ let persons = [
         name: "Mary Poppendieck",
         number: "39-23-6423122",
     },
+    {
+        id: 200,
+        name: "My id is really high",
+        number: "39-23-6423122",
+    },
 ];
 
+/** --------------- GET ---------------- */
 // api/persons/:id return person info based on id.
 // Returns 404 if person not found or id is not a number.
 app.get("/api/persons/:id", (req, res) => {
@@ -67,6 +73,12 @@ app.get("*", (req, res) => {
     res.sendStatus(404);
 });
 
+/** --------------- DELETE ---------------- */
+app.delete("/api/persons/:id", (req, res) => {
+    const id = Number(req.params.id);
+    persons = persons.filter((person) => person.id !== id);
+    res.sendStatus(204);
+});
 //Start server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
