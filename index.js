@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const PORT = 3001;
 
+app.use(express.json());
+
 // Placeholder data
 let persons = [
     {
@@ -73,12 +75,21 @@ app.get("*", (req, res) => {
     res.sendStatus(404);
 });
 
+/** --------------- POST ---------------- */
+app.post("/api/persons", (req, res) => {
+    const newContact = req.body;
+    newContact.id = Math.floor(Math.random() * 100000);
+    persons = persons.concat(newContact);
+    res.json(newContact);
+});
+
 /** --------------- DELETE ---------------- */
 app.delete("/api/persons/:id", (req, res) => {
     const id = Number(req.params.id);
     persons = persons.filter((person) => person.id !== id);
     res.sendStatus(204);
 });
+
 //Start server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
