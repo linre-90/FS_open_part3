@@ -76,8 +76,25 @@ app.get("*", (req, res) => {
 });
 
 /** --------------- POST ---------------- */
+//Post method to add contact.
+// Returns 404 if person name exists also if (name or number is empty) or missing.
 app.post("/api/persons", (req, res) => {
+    const body = req.body;
+
+    //Check name and number existance
+    if (!body.name || !body.number) {
+        return res.status(404).json({ error: "Name or number missing!" });
+    }
+
+    //Check if person is in persons array
+    if (persons.filter((person) => person.name === body.name).length > 0) {
+        return res.status(404).json({
+            error: "Contact with same name already exists",
+        });
+    }
+
     const newContact = req.body;
+
     newContact.id = Math.floor(Math.random() * 100000);
     persons = persons.concat(newContact);
     res.json(newContact);
