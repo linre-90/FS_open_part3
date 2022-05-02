@@ -42,11 +42,13 @@ app.get("/api/persons/:id", (req, res) => {
 });
 
 // api/persons route
+// Returns all persons as json array
 app.get("/api/persons", (req, res) => {
     res.json(persons);
 });
 
 // /info route. Displays info about saved contacts.
+// Returns html containing num of contacts and request time.
 app.get("/info", (req, res) => {
     const content = `
         <p>Phonebook has info for ${persons.length} people</p>
@@ -76,7 +78,7 @@ app.get("*", (req, res) => {
 });
 
 /** --------------- POST ---------------- */
-//Post method to add contact.
+// Post method to add contact.
 // Returns 404 if person name exists also if (name or number is empty) or missing.
 app.post("/api/persons", (req, res) => {
     const body = req.body;
@@ -101,6 +103,7 @@ app.post("/api/persons", (req, res) => {
 });
 
 /** --------------- DELETE ---------------- */
+// Deletes contacts based on id.
 app.delete("/api/persons/:id", (req, res) => {
     const id = Number(req.params.id);
     persons = persons.filter((person) => person.id !== id);
