@@ -1,6 +1,6 @@
 {
     "name": "puhelinluettelobackend",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "description": "Fullstack open part 3",
     "main": "index.js",
     "scripts": {

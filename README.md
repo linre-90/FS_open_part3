@@ -1,7 +1,12 @@
 ## Fullstack open 2022
 
+Applicatino is available at: https://fso-phonebook-fs.herokuapp.com/
+
 ### Part 3
 
+    - 3.11
+    - 3.10
+    - 3.9
     - 3.8
     - 3.7
     - 3.6
