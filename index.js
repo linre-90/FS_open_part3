@@ -1,3 +1,4 @@
+const morgan = require("morgan");
 const express = require("express");
 const app = express();
 const PORT = 3001;
@@ -27,6 +28,24 @@ let persons = [
         number: "39-23-6423122",
     },
 ];
+
+/** --------------- LOGGER ---------------- */
+// Custom token to display req.body if method is POST and body exists
+morgan.token("postData", function (req, res) {
+    if (req.method === "POST" && req.body) {
+        return JSON.stringify(req.body);
+    } else {
+        return " ";
+    }
+});
+
+// Middleware to log requests
+//:method :url :status :res[content-length] - :response-time ms <---- tiny format
+app.use(
+    morgan(
+        ":method :url :status :res[content-length] - :response-time ms :postData"
+    )
+);
 
 /** --------------- GET ---------------- */
 // api/persons/:id return person info based on id.
@@ -71,18 +90,11 @@ app.get("/info", (req, res) => {
     res.send(HTML);
 });
 
-// Not supported routes catch
-app.get("*", (req, res) => {
-    console.log("Unknown path");
-    res.sendStatus(404);
-});
-
 /** --------------- POST ---------------- */
 // Post method to add contact.
 // Returns 404 if person name exists also if (name or number is empty) or missing.
 app.post("/api/persons", (req, res) => {
     const body = req.body;
-
     //Check name and number existance
     if (!body.name || !body.number) {
         return res.status(404).json({ error: "Name or number missing!" });
@@ -114,3 +126,10 @@ app.delete("/api/persons/:id", (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+
+/** --------------- CATCH ROUTE MIDDLEWARE ---------------- */
+// Not supported routes catch
+const unknownEndpoint = (req, res) => {
+    res.sendStatus(404);
+};
+app.use(unknownEndpoint);
