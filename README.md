@@ -3,7 +3,7 @@
 Application is available at: https://fso-phonebook-fs.herokuapp.com/
 
 ### Part 3
-
+    - 3.12
     - 3.11
     - 3.10
     - 3.9
