@@ -1,36 +1,16 @@
+require('dotenv').config();
+
+const Person = require("./models/person");
 const morgan = require("morgan");
 const cors = require("cors");
 const express = require("express");
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 
 app.use(express.json());
 app.use(express.static("build"));
 app.use(cors());
 
-// Placeholder data
-let persons = [
-    {
-        id: 0,
-        name: "Arto Hellas",
-        number: "040-654321",
-    },
-    {
-        id: 1,
-        name: "Dan Abramov",
-        number: "12-43-234345",
-    },
-    {
-        id: 2,
-        name: "Mary Poppendieck",
-        number: "39-23-6423122",
-    },
-    {
-        id: 200,
-        name: "My id is really high",
-        number: "39-23-6423122",
-    },
-];
 
 /** --------------- LOGGER ---------------- */
 // Custom token to display req.body if method is POST and body exists
@@ -50,79 +30,109 @@ app.use(
     )
 );
 
+
+
+
 /** --------------- GET ---------------- */
 // api/persons/:id return person info based on id.
 // Returns 404 if person not found or id is not a number.
-app.get("/api/persons/:id", (req, res) => {
-    const id = Number.parseInt(req.params.id);
+app.get("/api/persons/:id", (req, res, next) => {
+    Person.findById(req.params.id).then(result => {
+        if (result) {
+            res.json(result);
+        } else {
+            res.sendStatus(404);
+        }
+    }).catch(error => next(error));
 
-    if (isNaN(id) || persons.find((person) => person.id === id) === undefined) {
-        res.sendStatus(404);
-    } else {
-        res.json(persons.find((person) => person.id === id));
-    }
 });
 
 // api/persons route
 // Returns all persons as json array
-app.get("/api/persons", (req, res) => {
-    res.json(persons);
+app.get("/api/persons", (req, res, next) => {
+    Person.find({}).then(result => {
+        res.json(result);
+    }).catch(error => next(error));
 });
 
 // /info route. Displays info about saved contacts.
 // Returns html containing num of contacts and request time.
-app.get("/info", (req, res) => {
-    const content = `
-        <p>Phonebook has info for ${persons.length} people</p>
-        <p>${new Date()}</p>`;
+app.get("/info", (req, res, next) => {
+    Person.count().then(result => {
+        const HTML = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="X-UA-Compatible" content="ie=edge">
+            <title>Puhelinluettelo API</title>
+        </head>
+        <body>
+            <p>Phonebook has info for ${result} people</p>
+            <p>${new Date()}</p>
+        </body>
+        </html>
+        `;
+        res.send(HTML);
 
-    const HTML = `
-    <!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>Puhelinluettelo API</title>
-      </head>
-      <body>
-        ${content}
-      </body>
-    </html>
-    `;
-    res.send(HTML);
+
+    }).catch(error => next(error));
 });
+
+
+
 
 /** --------------- POST ---------------- */
 // Post method to add contact.
 // Returns 404 if person name exists also if (name or number is empty) or missing.
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", (req, res, next) => {
     const body = req.body;
     //Check name and number existance
     if (!body.name || !body.number) {
         return res.status(404).json({ error: "Name or number missing!" });
     }
 
-    //Check if person is in persons array
-    if (persons.filter((person) => person.name === body.name).length > 0) {
-        return res.status(404).json({
-            error: "Contact with same name already exists",
-        });
-    }
+    const person = new Person({
+        name: body.name,
+        number: body.number,
+    });
 
-    const newContact = req.body;
-
-    newContact.id = Math.floor(Math.random() * 100000);
-    persons = persons.concat(newContact);
-    res.json(newContact);
+    person.save().then(result => {
+        res.json(result)
+    }).catch(error => next(error));
 });
+
+
+
+
+/** --------------- UPDATE ---------------- */
+app.put('/api/persons/:id', (req, res, next) => {
+    const body = req.body;
+
+    const person = {
+        name: body.name,
+        number: body.number,
+    };
+
+    Person.findByIdAndUpdate(req.params.id, person, { new: true })
+        .then(result => {
+            res.json(result)
+        })
+        .catch(error => next(error));
+});
+
+
+
 
 /** --------------- DELETE ---------------- */
 // Deletes contacts based on id.
-app.delete("/api/persons/:id", (req, res) => {
-    const id = Number(req.params.id);
-    persons = persons.filter((person) => person.id !== id);
-    res.sendStatus(204);
+app.delete("/api/persons/:id", (req, res, next) => {
+    Person.findByIdAndRemove(req.params.id)
+        .then(result => {
+            res.sendStatus(204);
+        })
+        .catch(error => next(error))
 });
 
 //Start server
@@ -130,9 +140,29 @@ app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
+
+
+
 /** --------------- CATCH ROUTE MIDDLEWARE ---------------- */
 // Not supported routes catch
 const unknownEndpoint = (req, res) => {
     res.sendStatus(404);
 };
 app.use(unknownEndpoint);
+
+
+/** --------------- ERROR MIDDLEWARE ---------------- */
+const errorHandler = (error, req, res, next) => {
+    console.error(error.message);
+
+    if (error.name === 'CastError') {
+        return res.status(400).send({ error: 'malformatted id' });
+    }
+    else if (error.name) {
+        return res.status(404).send({ error: error.name });
+    }
+
+    next(error);
+}
+
+app.use(errorHandler)
