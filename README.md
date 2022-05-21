@@ -1,6 +1,6 @@
 ## Fullstack open 2022
 
-Application is available at: https://fso-phonebook-fs.herokuapp.com/
+Application is available at: [https://fso-phonebook-fs.herokuapp.com/](https://fso-phonebook-fs.herokuapp.com/)
 
 ### Part 3
     - 3.21
